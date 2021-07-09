@@ -1,0 +1,114 @@
+* {
+  font-family: 'Tourney', arial;
+}
+
+#app {
+height: 100vh;
+display: flex;
+align-items: center;
+justify-content: center;
+}
+
+body {
+background: #c2c2d6;
+}
+
+.calculator {
+border: 12px solid #0e0e7c;
+border-radius: 20px;
+padding: 5px;
+background: black;
+width: 400px;
+position: relative;
+}
+
+.formulaScreen {
+min-height: 20px;
+font-size: 35px;
+color: white;
+text-align: right;
+vertical-align: text-top;
+line-height: 20px;
+overflow-wrap: break-word;
+word-wrap: break-word;
+}
+
+.displayScreen {
+font-size: 42px;
+color: green;
+text-align: right;
+margin-top: 10px;
+line-height: 35px;
+}
+
+button {
+position: relative;
+height: 80px;
+width: 80px;
+margin: 10px;
+color: black;
+outline: 1px solid black;
+border: none;
+font-size: 30px;
+&:hover {
+  background-color: green;
+  border: 1em blue;
+  transform: scale(1.1);
+}
+}
+
+.double {
+width: 180px;
+  
+}
+
+.roundedButton {
+  border-radius: 50%;
+  background-color: #2d2d2e;
+  color: white;
+  
+}
+
+.operator {
+  border-radius: 50%;
+  background-color: #ff9100;
+}
+
+.equals{
+
+  background-color: orangered;
+}
+
+.allclear{
+  background-color: darkred;
+  border-radius: 20px;
+  color: white;
+}
+
+.clearone {
+  border-radius: 50%;
+}
+
+.zero{
+  border-radius: 20px;
+  background-color: #2d2d2e;
+  color: white;
+}
+
+.decimal {
+  border-radius: 50%;
+  margin-left: 10px;
+  background-color: #2d2d2e;
+  color: white;
+}
+
+.equals {
+  border-radius: 50%;
+  color: white;
+}
+
+.delete {
+  border-radius: 50%;
+  background-color: red;
+  color: white;
+}

@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TicTacToe: Taco_vs_Burrito</title>
+    <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.10.0/css/all.css" integrity="sha384-AYmEC3Yw5cVb3ZcuHtOA93w35dYTsvhLPVnYs9eStHfGJvOvKxVfELGroGkvsg+p" crossorigin="anonymous"/>
+ 
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tourney:wght@700&display=swap" rel="stylesheet">   
+    <link rel="stylesheet" href="/demo/React-Calculator/react-calc.css">
+</head>
+<body>
+    <section class="parentLogo">
+        <a href="https://taco-it.com/index.html"><img src="/img/devchris_logo.png" alt="Taco-IT Logo to return to main site"></a>
+    </section>
+    <div id="app"></div>
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react@17/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"></script>
+    <script src="/demo/tic-tac-toe/tic-tac-toe.js"></script>
+    <script type="text/babel">
+ // REGEX Evaluations
+const isOperator = /[*/+‑]/
+const endsWithOperator = /[*+‑/]$/
+const endswithNegativeSign = /\d[*/+‑]{1}‑$/
+const formulaCheck = /([^.0-9]0|^0)$/
+const negativeCheck = /-/g
+const properFormula = /(\*|\/|\+)‑/
+const startNegativeCheck = /^‑/
+
+// Calculator Component 
+class Calculator extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      currentOperand: '0',
+      previousOperand: '0',
+      formula: '',
+      operand: '',
+      lastClicked: ''
+    };
+
+    // BINDINGS:
+    //Create bindings for click events 
+    //handle the operator buttons /*-+
+    this.handleOperators = this.handleOperators.bind(this);
+    //handle compute (equals)
+    this.compute = this.compute.bind(this);
+    // reset when AC is clicked 
+    this.reset = this.reset.bind(this);
+    // delete digit when DEL is clicked 
+    this.delete = this.delete.bind(this);
+    //handle period clicked, need to ensure only 1 period allowed 
+    this.handleDotClick = this.handleDotClick.bind(this);
+    //handle clicking any of the numbers [0-9]
+    this.handleDigits = this.handleDigits.bind(this);
+  }
+
+
+  //Compute function where the magic happens for calculating the expresssion 
+  compute() {
+      //get forumula and store in variable named evaluatedFormula
+      let evaluatedFormula = this.state.formula;
+      // if the current formula ends in an operator, trim last value 
+      if (endsWithOperator.test(evaluatedFormula) === true) {
+        evaluatedFormula = evaluatedFormula.slice(0, -1);
+      }
+      //cleanup the - values 
+      evaluatedFormula = evaluatedFormula.replace(/‑/g, '-'); 
+      //parse the answer to a fixed 9 numbers following decimal 
+     // let answer = parseFloat(eval(evaluatedFormula))
+     let answer;
+      // if the length is larger than 5 digits, then lets trim it to a fixed length
+      if (parseFloat(eval(evaluatedFormula)).length >= 5){
+         answer = parseFloat(eval(evaluatedFormula)).toFixed(5)
+      } else {
+          answer = parseFloat(eval(evaluatedFormula))
+      }
+      //update the state to replace formula values and enforce only negative as starting value then set evaluated state to true. 
+      //Still show the forumula but only the answer in display area 
+      this.setState({
+        currentOperand: answer.toString(),
+        formula:
+          evaluatedFormula
+            .replace(negativeCheck, '‑')
+            .replace(properFormula, '$1-')
+            .replace(startNegativeCheck, '-'),
+        previousOperand: answer,
+        evaluated: true
+      });
+  }
+
+  //Function to handle all operators [*/+-]
+  handleOperators(e) {
+      //get value of button pressed by event 
+      const value = e.target.value;
+      const { formula, previousOperand, evaluated } = this.state;
+      //set currentOperand to value and evaluated still false since we haven't pressed = 
+      this.setState({ currentOperand: value, evaluated: false });
+      //if we have evaluated then append operator to formula 
+      if (evaluated) {
+        this.setState({ formula: previousOperand + value });
+      } // if current formula doesn't end in a operator then update formula
+      else if (!endsWithOperator.test(formula)) {
+        this.setState({
+          previousOperand: formula,
+          formula: formula + value
+        });
+      } // if we dont' end in in a negative sign then  set formula otherwise set set value 
+      else if (!endswithNegativeSign.test(formula)) {
+        this.setState({
+          formula:
+            (endswithNegativeSign.test(formula + value) ? formula : previousOperand) +
+            value
+        });
+      } // if our value isn't negative then simply update formula to append value after operand  
+      else if (value !== '‑') {
+        this.setState({
+          formula: previousOperand + value
+        });
+      }
+    
+  }
+  //handle numbers being pressed (non operators) 
+  handleDigits(e) {
+      const { currentOperand, formula, evaluated } = this.state;
+      //assign variable value of button by event 
+      const value = e.target.value;
+      // we still haven't evaluated since we are entering digits 
+      this.setState({ evaluated: false });
+      //check if we have evaluated so we know to continue from previous formula or start new
+ if (evaluated) {
+        this.setState({
+          currentOperand: value,
+          formula: value !== '0' ? value : ''
+        });
+      } else {
+        this.setState({
+          // if current value is 0 or an oeprator then set state to current value or the operand + new value
+          currentOperand:
+            currentOperand === '0' || isOperator.test(currentOperand)
+              ? value
+              : currentOperand + value,
+          formula: //If we are currently 0 and value is 0 or formula is blank then test formula and append formula with value 
+            currentOperand === '0' && value === '0'  
+            ? formula === ''
+                ? value : formula
+              : formulaCheck.test(formula) //make sure its a proper formula, if not remove last value in formula and add new value
+              ? formula.slice(0, -1) + value : formula + value
+        });
+      }
+    
+  }
+  // when pressing period (dot)
+  handleDotClick() {
+    //if we have already evaluated, then we need to append after a 0 for float number 
+    if (this.state.evaluated === true) {
+      this.setState({
+        currentOperand: '0.',
+        formula: '0.',
+        evaluated: false
+      });
+    } else if ( //do we already have a decimal? 
+      !this.state.currentOperand.includes('.') 
+    ) { //set the state for evaluated to false 
+      this.setState({ evaluated: false });
+      if ( //check if we are ending on an operator or if its 0 or formula is empty 
+        endsWithOperator.test(this.state.formula) ||
+        (this.state.currentOperand === '0' && this.state.formula === '')
+      ) { //append dot after 0 to begin float number 
+        this.setState({
+          currentOperand: '0.',
+          formula: this.state.formula + '0.'
+        });
+      } else { //otherwise check if it matches for already containing a decimal 
+        this.setState({
+          currentOperand: this.state.formula.match(/(-?\d+\.?\d*)$/)[0] + '.',
+          formula: this.state.formula + '.'
+        });
+      }
+    }
+  }
+
+  delete() { // when DEL is clicked, delete the last clicked value, must clear last digit of currentOperand, previousOperand, formula, and reset last clicked value. 
+    //if we are deleting the last value, then just call reset()
+    if (this.state.formula.length < 2){
+     this.reset()
+    }
+    else {
+      this.setState({
+        currentOperand: this.state.currentOperand.slice(0, -1),
+        previousOperand: this.state.previousOperand.slice(0, -1),
+        formula: this.state.formula.slice(0, -1),
+        lastClicked: ''
+      })
+    }
+    
+  }
+
+  // reset state to default value to allow another calculation 
+  reset() {
+    this.setState({
+      currentOperand: '0',
+      previousOperand: '0',
+      formula: '',
+      operand: '',
+      lastClicked: '',
+      evaluated: false
+    });
+  }
+
+  render() {   
+    return (
+      <div>
+        <div className="calculator">
+          <Formula formula={this.state.formula} />
+          <Display currentOperandue={this.state.currentOperand} />
+          <Buttons
+            decimal={this.handleDotClick}
+            evaluate={this.compute}
+            reset={this.reset}
+            delete={this.delete}
+            digits={this.handleDigits}
+            operators={this.handleOperators}
+          />
+        </div>
+      </div>
+    );
+  }
+}
+
+class Buttons extends React.Component {
+  render() {
+    return (
+      <div id="calculator">
+        <button className="double allclear" id="clear" onClick={this.props.reset}value="AC"> AC </button>
+        <button className="delete" id="delete" onClick={this.props.delete} value="C"> DEL </button>
+        <button className="roundedButton operator" id="divide" onClick={this.props.operators} value="/"> / </button>
+        <button className="roundedButton" id="seven" onClick={this.props.digits} value="7"> 7 </button>
+        <button className="roundedButton" id="eight" onClick={this.props.digits} value="8"> 8 </button>
+        <button className="roundedButton" id="nine" onClick={this.props.digits} value="9">  9 </button>
+        <button className="roundedButton operator" id="multiply" onClick={this.props.operators} value="*" > * </button>
+        <button className="roundedButton" id="four" onClick={this.props.digits} value="4"> 4 </button>
+        <button className="roundedButton" id="five" onClick={this.props.digits} value="5"> 5 </button>
+        <button className="roundedButton" id="six" onClick={this.props.digits} value="6">  6 </button>
+        <button className="roundedButton operator" id="subtract" onClick={this.props.operators} value="‑"> ‑ </button>
+        <button className="roundedButton" id="one" onClick={this.props.digits} value="1"> 1 </button>
+        <button className="roundedButton" id="two" onClick={this.props.digits} value="2"> 2 </button>
+        <button className="roundedButton" id="three" onClick={this.props.digits} value="3"> 3 </button>
+        <button className="roundedButton operator" id="add" onClick={this.props.operators} value="+"> + </button>
+        <button className="double zero" id="zero" onClick={this.props.digits} value="0"> 0 </button>
+        <button className="decimal" id="decimal" onClick={this.props.decimal} value="."> . </button>
+        <button className="equals" id="equals" onClick={this.props.evaluate} value="="> = </button>
+      </div>
+    );
+  }
+}
+
+class Display extends React.Component {
+  render() {
+    return (
+      <div className="displayScreen" id="display">
+        {this.props.currentOperandue}
+      </div>
+    );
+  }
+}
+
+class Formula extends React.Component {
+  render() {
+    return <div className="formulaScreen">{this.props.formula}</div>;
+  }
+}
+
+ReactDOM.render(<Calculator />, document.getElementById('app'));
+
+    </script>
+   </body>
+</html>
